@@ -1,0 +1,55 @@
+LINUX_DIR := ./linux 
+BUILDROOT_DIR := ./buildroot 
+
+KERNEL_IMG := $(LINUX_DIR)/arch/x86/boot/bzImage
+RFS_IMG := $(BUILDROOT_DIR)/output/images/rootfs.ext2
+
+QEMU_CMD := qemu-system-x86_64 \
+	-kernel $(KERNEL_IMG) \
+	-hda $(RFS_IMG) \
+	-append "root=/dev/sda console=ttyS0" \
+	-device nvme,serial=1234 \
+	-nographic \
+	-m 2G 
+
+
+MAKE_CMD := PATH=/usr/bin:/bin:/usr/sbin:/sbin $(MAKE)
+
+.PHONY: all kernel run test test-script clean-kernel clean
+
+kernel:
+	@echo "--- Building Kernel ---"
+	@$(MAKE_CMD) -C $(LINUX_DIR) -j$(CPU_CORES)
+
+run: $(KERNEL_IMG) $(RFS_IMG)
+	@echo "--- Starting QEMU ---"
+	@$(QEMU_CMD)
+
+test:
+	@echo "========================================================"
+	@echo " To test your driver inside QEMU, run these commands:"
+	@echo "========================================================"
+	@echo " # 1. Create a 1MB test file"
+	@echo " dd if=/dev/zero of=original.bin bs=1M count=1"
+	@echo ""
+	@echo " # 2. Write the file to the NVMe device"
+	@echo " dd if=original.bin of=/dev/nvme0n1"
+	@echo ""
+	@echo " # 3. Read the data back from the device"
+	@echo " dd if=/dev/nvme0n1 of=readback.bin bs=1M count=1"
+	@echo ""
+	@echo " # 4. Compare the original and read-back files"
+	@echo " cmp original.bin readback.bin"
+	@echo ""
+	@echo " If 'cmp' produces no output, the test is SUCCESSFUL!"
+	@echo "========================================================"
+
+
+clean-kernel:
+	@$(MAKE_CMD) -C $(LINUX_DIR) clean
+
+clean-rfs:
+	@$(MAKE_CMD) -C $(BUILDROOT_DIR) clean
+
+clean: clean-kernel clean-rfs
+	@echo "Cleaned kernel and buildroot outputs."
