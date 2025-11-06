@@ -1,31 +1,32 @@
-LINUX_DIR := ./linux 
-BUILDROOT_DIR := ./buildroot 
+CPU_CORES ?= $(shell echo $$(($$(nproc) - 2)))
+
+LINUX_DIR := ./linux
+BUILDROOT_DIR := ./buildroot
 
 KERNEL_IMG := $(LINUX_DIR)/arch/x86/boot/bzImage
 RFS_IMG := $(BUILDROOT_DIR)/output/images/rootfs.ext2
 
 QEMU_CMD := qemu-system-x86_64 \
-	-kernel $(KERNEL_IMG) \
-	-hda $(RFS_IMG) \
-	-append "root=/dev/sda console=ttyS0" \
-	-device nvme,serial=1234 \
-	-nographic \
-	-m 2G 
-
+    -kernel $(KERNEL_IMG) \
+    -hda $(RFS_IMG) \
+    -append "root=/dev/sda console=ttyS0" \
+    -drive file=nvme_disk.img,if=none,id=D22 \
+    -device nvme,drive=D22,serial=1234 \
+    -m 2G
 
 MAKE_CMD := PATH=/usr/bin:/bin:/usr/sbin:/sbin $(MAKE)
 
-.PHONY: all kernel run test test-script clean-kernel clean
+.PHONY: all kernel boot help clean-kernel
 
 kernel:
 	@echo "--- Building Kernel ---"
 	@$(MAKE_CMD) -C $(LINUX_DIR) -j$(CPU_CORES)
 
-run: $(KERNEL_IMG) $(RFS_IMG)
+boot: $(KERNEL_IMG) $(RFS_IMG)
 	@echo "--- Starting QEMU ---"
 	@$(QEMU_CMD)
 
-test:
+help:
 	@echo "========================================================"
 	@echo " To test your driver inside QEMU, run these commands:"
 	@echo "========================================================"
@@ -47,9 +48,3 @@ test:
 
 clean-kernel:
 	@$(MAKE_CMD) -C $(LINUX_DIR) clean
-
-clean-rfs:
-	@$(MAKE_CMD) -C $(BUILDROOT_DIR) clean
-
-clean: clean-kernel clean-rfs
-	@echo "Cleaned kernel and buildroot outputs."
