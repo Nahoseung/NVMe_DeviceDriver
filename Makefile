@@ -16,7 +16,7 @@ QEMU_CMD := qemu-system-x86_64 \
 
 MAKE_CMD := PATH=/usr/bin:/bin:/usr/sbin:/sbin $(MAKE)
 
-.PHONY: all kernel boot help clean-kernel
+.PHONY: all kernel boot help clean-kernel find
 
 kernel:
 	@echo "--- Building Kernel ---"
@@ -48,3 +48,7 @@ help:
 
 clean-kernel:
 	@$(MAKE_CMD) -C $(LINUX_DIR) clean
+
+find:
+	@echo "--- [cscope] Entering Kernel Directory $(LINUX_DIR) ---"
+	@cd $(LINUX_DIR) && cscope -d
