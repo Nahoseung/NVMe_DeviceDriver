@@ -207,7 +207,7 @@ Figure 4: PCI Express Specific Controller Property Definitions
 
 
 ##### ** ToDo **
-* [ ] **PCIe BAR 매핑**: `my_nvme_probe` 함수에서 `ioremap`을 사용하여 컨트롤러의 레지스터 메모리(BAR0)에 접근
-* [ ] **컨트롤러 초기화**: 매핑된 레지스터를 통해 NVMe 컨트롤러를 비활성화(`CC.EN=0`), 초기화, 재활성화(`CC.EN=1`)로직 구현
-* [ ] **Admin Queue 생성**: 관리자용 제출 큐(SQ)와 완료 큐(CQ)를 메모리에 할당하고, 해당 큐의 물리 주소를 컨트롤러 레지스터(ASQ, ACQ, AQA)에 등록
+* [ * ] **PCIe BAR 매핑**: `my_nvme_probe` 함수에서 `ioremap`을 사용하여 컨트롤러의 레지스터 메모리(BAR0)에 접근
+* [ * ] **컨트롤러 초기화**: 매핑된 레지스터를 통해 NVMe 컨트롤러를 비활성화(`CC.EN=0`), 초기화, 재활성화(`CC.EN=1`)로직 구현
+* [ * ] **Admin Queue 생성**: 관리자용 제출 큐(SQ)와 완료 큐(CQ)를 메모리에 할당하고, 해당 큐의 물리 주소를 컨트롤러 레지스터(ASQ, ACQ, AQA)에 등록
 * [ ] **I/O Queue 생성 및 블록 디바이스 연동**: `blk-mq` 프레임워크를 사용하여 I/O 큐를 생성하고, `/dev/nvme0n1` 장치를 생성하여 리눅스 블록 시스템과 연결
