@@ -45,7 +45,7 @@ cmp origin.txt readback.txt
 cat readback.txt
 
 
-### DataSheet
+
 
 ##### lspci -nn
 00:01.0 Class 0601: 8086:7000
@@ -58,8 +58,11 @@ cat readback.txt
 00:01.1 Class 0101: 8086:7010
 00:02.0 Class 0300: 1234:1111
 #
-## NVMe Controller Property Definition (Figure 35; Page: 58)
 
+# DataSheet Spec
+
+## NVMe Controller Property Definition (Figure 35; Page: 58)
+### BAR
 | Offset (h) | Size (bytes) | I/O Ctrl | Admin Ctrl | Discovery Ctrl | Name / Description |
 |-------------|--------------|-----------|--------------|----------------|--------------------|
 | 00h | 8 | M | M | M | **CAP:** Controller Capabilities |
@@ -96,7 +99,7 @@ cat readback.txt
 ---
 
 CAP: 0x000000040001000f
-
+The stride is specified as (2 ^ (2 + DSTRD)) in bytes. 
 ## Memory-based Transport Queue Model
 3.3.1.1
 Queue Setup and Initialization
@@ -151,6 +154,56 @@ initialized and may be used to complete I/O commands.
 | **Bytes 63:60** | **Command Dword 15 (CDW15):** This field is command specific Dword 15. |
 
 
+## Figure 138: Opcodes for Admin Commands
+| (07) Generic Command | (06:02) Function | (01:00) Data Transfer | Combined Opcode | Command                       |
+|----------------------|------------------|------------------------|------------------|-------------------------------|
+| 0b                   | 000 00b          | 00b                   | 00h             | Delete I/O Submission Queue   |
+| 0b                   | 000 00b          | 01b                   | 01h             | Create I/O Submission Queue   |
+| 0b                   | 000 00b          | 10b                   | 02h             | Get Log Page                  |
+| 0b                   | 000 01b          | 00b                   | 04h             | Delete I/O Completion Queue   |
+| 0b                   | 000 01b          | 01b                   | 05h             | Create I/O Completion Queue   |
+| 0b                   | 000 01b          | 10b                   | 06h             | Identify                      |
+| 0b                   | 000 10b          | 00b                   | 08h             | Abort                         |
+| 0b                   | 000 10b          | 01b                   | 09h             | Set Features                  |
+| 0b                   | 000 10b          | 10b                   | 0Ah             | Get Features                  |
+| 0b                   | 000 11b          | 00b                   | 0Ch             | Asynchronous Event Request    |
+| 0b                   | 000 11b          | 01b                   | 0Dh             | Namespace Management          |
+| 0b                   | 001 00b          | 00b                   | 10h             | Firmware Commit               |
+| 0b                   | 001 00b          | 01b                   | 11h             | Firmware Image Download       |
+| 0b                   | 001 01b          | 00b                   | 14h             | Device Self-test              |
+| 0b                   | 001 01b          | 01b                   | 15h             | Namespace Attachment          |
+| 0b                   | 001 10b          | 00b                   | 18h             | Keep Alive                    |
+| 0b                   | 001 10b          | 01b                   | 19h             | Directive Send                |
+| 0b                   | 001 10b          | 10b                   | 1Ah             | Directive Receive             |
+| 0b                   | 001 11b          | 00b                   | 1Ch             | Virtualization Management     |
+| 0b                   | 001 11b          | 01b                   | 1Dh             | NVMe-MI Send                  |
+| 0b                   | 001 11b          | 10b                   | 1Eh             | NVMe-MI Receive               |
+| 0b                   | 010 00b          | 00b                   | 20h             | Capacity Management           |
+| 0b                   | 010 01b          | 00b                   | 24h             | Lockdown                      |
+| 0b                   | 111 11b          | 00b                   | 7Ch             | Doorbell Buffer Config        |
+| 0b                   | 111 11b          | 11b                   | 7Fh             | Fabrics Commands              |
+| 1b                   | 000 00b          | 00b                   | 80h             | Format NVM                    |
+| 1b                   | 000 00b          | 01b                   | 81h             | Security Send                 |
+| 1b                   | 000 00b          | 10b                   | 82h             | Security Receive              |
+| 1b                   | 000 01b          | 00b                   | 84h             | Sanitize                      |
+| 1b                   | 000 01b          | 10b                   | 86h             | Get LBA Status (NVM, ZNS)     |
+
+The Identify command returns a data buffer that describes information about the NVM subsystem, the
+domain, the controller or the namespace(s). The data structure is 4,096 bytes in size.
+The Identify command uses the Data Pointer, Command Dword 10, Command Dword 11, and Command
+Dword 14 fields. All other command specific fields are reserved.
+
+## Doorbell
+The PCIe transport supports Controller Properties as memory mapped registers that are located in the
+address range specified in the MLBAR/MUBAR registers (PCI BAR0 and BAR1). NVM Express defined
+registers for the PCI Express transport start at the offset defined in Figure 4. All controller registers shall be
+mapped to a memory space that supports in-order access and variable access widths. For many computer
+architectures, specifying the memory space as uncacheable produces this behavior. The host shall not
+issue locked accesses to registers. The host shall access registers in their native width or aligned 32-bit
+accesses. Violation of either of these host requirements results in undefined behavior.
+Accesses that target any portion of two or more registers are not supported.
+All reserved registers and all reserved bits within registers are read-only and return 0h when read.
+Figure 4: PCI Express Specific Controller Property Definitions
 
 
 ##### ** ToDo **
