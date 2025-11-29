@@ -27,10 +27,10 @@ QEMU 가상 환경에서 NVMe 스토리지 컨트롤러 블록 디바이스 드�
 dd if=/dev/random of=origin.bin bs=1M count=1
 
 ##### Write
-dd if=origin.bin of=/dev/nvme0n1
+dd if=origin.bin of=/dev/my_nvme0n1
 
 ##### Read
-dd if=/dev/nvme0n1 of=readback.bin bs=1M count=1
+dd if=/dev/my_nvme0n1 of=readback.bin bs=1M count=1
 
 ##### Compare 
 cmp origin.bin readback.bin
@@ -39,8 +39,8 @@ cmp origin.bin readback.bin
 echo "[WRITE SOMETHING]" > origin.txt
 SIZE = $(wc -c < origin.txt)
 
-dd if=origin.txt of=/dev/nvme0n1
-dd if=/dev/nvme0n1 of=readback.txt bs=1 count=$SIZE
+dd if=origin.txt of=/dev/my_nvme0n1
+dd if=/dev/my_nvme0n1 of=readback.txt bs=1 count=$SIZE
 cmp origin.txt readback.txt
 cat readback.txt
 
